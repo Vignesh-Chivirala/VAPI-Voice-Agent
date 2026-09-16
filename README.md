@@ -1,99 +1,82 @@
-# 🏥 VAPI Voice Agent — Hospital Appointment System
+# VAPI Voice Agent - Hospital Appointment System
 
-An AI-powered voice agent backend for managing hospital appointments, built with **FastAPI**, **SQLAlchemy**, and **Streamlit**. Designed to integrate with [VAPI](https://vapi.ai/) for conversational voice interactions, enabling patients to schedule, cancel, and list appointments via natural language.
+A backend service for integrating a conversational VAPI voice agent with a hospital appointment management system. The application provides APIs for scheduling, cancelling, and retrieving appointments through voice-driven interactions.
 
----
+## Overview
 
-## ✨ Features
+This project demonstrates how a voice AI agent can interact with backend services and perform real-world actions through API function calls.
 
-- **Schedule Appointments** — Book a new appointment with patient name, reason, and preferred time.
-- **Cancel Appointments** — Cancel all appointments for a patient on a given date.
-- **List Appointments** — View all active (non-canceled) appointments for a specific date.
-- **Streamlit Dashboard** — A simple web UI for testing the API endpoints.
-- **SQLite Database** — Lightweight, file-based persistence with zero configuration.
+The backend is built with FastAPI and SQLAlchemy, with SQLite used for persistent appointment storage. A Streamlit interface is included for testing and validating the available API workflows.
 
----
+## Features
 
-## 🏗️ Project Structure
+* Schedule hospital appointments using patient details, visit reason, and preferred time.
+* Cancel appointments for a specific patient and date.
+* Retrieve active appointments for a given date.
+* Expose backend functions as tools for a VAPI voice agent.
+* Persist appointment data using SQLite and SQLAlchemy.
+* Test API workflows through a Streamlit dashboard.
+* Support structured JSON requests through REST API endpoints.
 
+## Tech Stack
+
+| Technology   | Purpose                               |
+| ------------ | ------------------------------------- |
+| Python 3.11+ | Application development               |
+| FastAPI      | REST API framework                    |
+| VAPI         | Voice agent integration               |
+| SQLAlchemy   | Database ORM                          |
+| SQLite       | Appointment data persistence          |
+| Streamlit    | API testing dashboard                 |
+| Uvicorn      | ASGI server                           |
+| uv           | Dependency and environment management |
+
+## Architecture
+
+```text
+User
+  |
+  v
+VAPI Voice Agent
+  |
+  | Tool / Function Calls
+  v
+FastAPI Backend
+  |
+  +-------------------+
+  |                   |
+  v                   v
+Appointment Logic   SQLAlchemy
+                        |
+                        v
+                   SQLite Database
 ```
-├── backend.py          # FastAPI server with appointment endpoints
-├── database.py         # SQLAlchemy models, engine, and session management
-├── dummy_frontend.py   # Streamlit dashboard for testing
-├── db_demo.py          # Utility script for raw SQL queries against the DB
-├── pyproject.toml      # Project metadata and dependencies
+
+## Project Structure
+
+```text
+vapi-voice-agent-backend/
+├── backend.py          # FastAPI application and API endpoints
+├── database.py         # SQLAlchemy models and database configuration
+├── dummy_frontend.py   # Streamlit testing interface
+├── db_demo.py          # Database query demonstration
+├── appointments_db.db  # SQLite database
+├── pyproject.toml      # Project configuration and dependencies
+├── uv.lock             # Locked dependency versions
 └── README.md
 ```
 
----
+## API Endpoints
 
-## 📋 Prerequisites
+All endpoints accept JSON payloads using HTTP POST requests.
 
-- **Python 3.11+**
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
+### Schedule Appointment
 
----
-
-## 🚀 Getting Started
-
-### 1. Clone the repository
-
-```bash
-git clone <repo-url>
-cd vapi-voice-agent
-```
-
-### 2. Create a virtual environment & install dependencies
-
-Using **uv** (recommended):
-
-```bash
-uv venv
-source .venv/bin/activate
-uv sync
-```
-
-Or using **pip**:
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install fastapi sqlalchemy streamlit uvicorn
-```
-
-### 3. Start the backend server
-
-```bash
-python backend.py
-```
-
-The API will be available at **http://127.0.0.1:4444**.
-
-### 4. (Optional) Launch the Streamlit dashboard
-
-```bash
-streamlit run dummy_frontend.py
-```
-
----
-
-## 📡 API Endpoints
-
-All endpoints accept JSON payloads via **POST**.
-
-### Schedule an Appointment
-
-```
+```http
 POST /schedule_appointment/
 ```
 
-| Field          | Type     | Description                    |
-| -------------- | -------- | ------------------------------ |
-| `patient_name` | `string` | Name of the patient            |
-| `reason`       | `string` | Reason for the appointment     |
-| `start_time`   | `string` | ISO 8601 datetime (e.g. `2026-02-20T09:00:00`) |
-
-**Example:**
+Request:
 
 ```json
 {
@@ -103,75 +86,212 @@ POST /schedule_appointment/
 }
 ```
 
----
+### Cancel Appointment
 
-### Cancel Appointments
-
-```
+```http
 POST /cancel_appointment/
 ```
 
-| Field          | Type     | Description                          |
-| -------------- | -------- | ------------------------------------ |
-| `patient_name` | `string` | Name of the patient                  |
-| `date`         | `string` | Date to cancel appointments for (ISO 8601, e.g. `2026-02-20`) |
+Request:
 
----
+```json
+{
+  "patient_name": "Vignesh",
+  "date": "2026-08-25"
+}
+```
 
 ### List Appointments
 
-```
+```http
 POST /list_appointments/
 ```
 
-| Field  | Type     | Description                        |
-| ------ | -------- | ---------------------------------- |
-| `date` | `string` | Date to list appointments for (ISO 8601, e.g. `2026-02-20`) |
+Request:
 
----
+```json
+{
+  "date": "2026-08-25"
+}
+```
 
-## 🗄️ Database
+## Database Schema
 
-The project uses **SQLite** via SQLAlchemy. The database file (`appointments_db.db`) is created automatically on first run.
+Appointments are stored in SQLite using SQLAlchemy.
 
-### Appointment Schema
+| Field          | Type     | Description                     |
+| -------------- | -------- | ------------------------------- |
+| `id`           | Integer  | Primary key                     |
+| `patient_name` | String   | Patient name                    |
+| `reason`       | String   | Reason for appointment          |
+| `start_time`   | DateTime | Appointment date and time       |
+| `canceled`     | Boolean  | Appointment cancellation status |
+| `created_at`   | DateTime | Record creation timestamp       |
 
-| Column         | Type       | Description                 |
-| -------------- | ---------- | --------------------------- |
-| `id`           | Integer    | Primary key (auto-increment)|
-| `patient_name` | String     | Patient's name              |
-| `reason`       | String     | Reason for visit (optional) |
-| `start_time`   | DateTime   | Appointment date & time     |
-| `canceled`     | Boolean    | Cancellation status         |
-| `created_at`   | DateTime   | Record creation timestamp   |
+## VAPI Integration
 
-### Running raw queries
+The backend is designed to act as a tool provider for a VAPI voice assistant.
 
-Use the `db_demo.py` utility to inspect the database directly:
+The following backend functions can be configured as VAPI tools:
+
+```text
+schedule_appointment
+cancel_appointment
+list_appointments
+```
+
+This allows the voice agent to interpret a user's request and invoke the appropriate backend function to perform the requested operation.
+
+Example workflow:
+
+```text
+User:
+"Schedule an appointment for Vignesh tomorrow at 9 AM."
+
+        ↓
+
+VAPI Voice Agent
+
+        ↓
+
+schedule_appointment()
+
+        ↓
+
+FastAPI Backend
+
+        ↓
+
+SQLite Database
+
+        ↓
+
+Appointment Created
+
+        ↓
+
+Voice Agent Response
+```
+
+## Installation
+
+### Prerequisites
+
+* Python 3.11 or later
+* uv or pip
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/AIwithhassan/vapi-voice-agent-backend.git
+
+cd vapi-voice-agent-backend
+```
+
+### Using uv
+
+Create and activate the virtual environment:
+
+```bash
+uv venv
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+uv sync
+```
+
+### Using pip
+
+Create and activate a virtual environment:
+
+```bash
+python -m venv .venv
+```
+
+Windows:
+
+```bash
+.venv\Scripts\activate
+```
+
+Linux/macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+Install dependencies:
+
+```bash
+pip install fastapi sqlalchemy streamlit uvicorn
+```
+
+## Running the Application
+
+Start the FastAPI server:
+
+```bash
+python backend.py
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:4444
+```
+
+To launch the Streamlit testing interface:
+
+```bash
+streamlit run dummy_frontend.py
+```
+
+## Testing
+
+The API can be tested using:
+
+* Streamlit dashboard
+* Postman
+* FastAPI Swagger documentation
+* Direct HTTP requests
+
+FastAPI automatically provides interactive API documentation at:
+
+```text
+http://127.0.0.1:4444/docs
+```
+
+## Database Utilities
+
+To inspect the SQLite database using the provided utility:
 
 ```bash
 python db_demo.py
 ```
 
----
+## Use Case
 
-## 🔌 VAPI Integration
+The project demonstrates a practical conversational AI workflow where a voice agent is connected to backend APIs and persistent application data.
 
-This backend is designed to serve as a tool/function provider for a **VAPI voice agent**. Point your VAPI assistant's server URL to the running backend and configure the three tool functions (`schedule_appointment`, `cancel_appointment`, `list_appointments`) to enable voice-driven appointment management.
+The architecture can be extended to other domains such as:
 
----
+* Real-estate lead qualification
+* Property inquiries
+* Customer support
+* Sales follow-ups
+* Appointment scheduling
+* CRM automation
 
-## 📦 Dependencies
+## Future Improvements
 
-| Package     | Purpose                        |
-| ----------- | ------------------------------ |
-| FastAPI     | Web framework for the REST API |
-| SQLAlchemy  | ORM and database toolkit       |
-| Uvicorn     | ASGI server                    |
-| Streamlit   | Testing dashboard UI           |
+* Add authentication and authorization.
+* Add appointment availability and conflict detection.
+* Integrate a production-grade database such as PostgreSQL.
+* Add logging and monitoring for agent interactions.
+* Add automated API and integration tests.
+* Deploy the FastAPI backend to a cloud platform.
+* Add additional VAPI tools for richer conversational workflows.
 
----
-
-## 📄 License
-
-This project is for educational and demonstration purposes.
